@@ -1,0 +1,58 @@
+This code is for a neural network, based off a tutorial from the Tensorflow website
+The dataset is group of images of hand-drawn numbers, with a label indicating what number is actually there
+Each image is an array of 28x28 pixels, each pixel/value is in the range of 0 - 255 depending on its colour in greyscale
+The model is trained by a list of known image-label combinations
+Once trained the model should be able to correctly label what each each hand-drawn number is
+
+import tensorflow as tf
+import matplotlib.pyplot as plt
+
+# Uses keras to load in dataset
+mnist = tf.keras.datasets.mnist # 28x28 images of hand-written digits 0-9
+
+# Splits data into testing and training data
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# Scaling the data (normalizing), makes it easier for network
+x_train = tf.keras.utils.normalize(x_train, axis=1)
+x_test = tf.keras.utils.normalize(x_test, axis=1)
+
+#Creating model
+model = tf.keras.models.Sequential()
+model.add(tf.keras.layers.Flatten()) # Input layer, moves elements from 28x28 multidimensional array, to single array
+model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu)) # Hidden layer
+model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu)) # Hidden layer
+model.add(tf.keras.layers.Dense(128, activation=tf.nn.softmax)) # Output layer, softmax picks a value for each neuron so that they all add up to 1 (to resemble a probability)
+
+model.compile(optimer='adam', 
+              loss='sparse_categorical_crossentropy',
+              metrics = ['accuracy'])
+model.fit(x_train, y_train, epochs = 3)
+
+test_loss, test_acc = model.evaluate(x_test, y_test)
+
+print("Tested Acc:", test_acc)
+
+# Creates a 5x5 grid displaying the first 25 images, along with their predicted labels
+predictions = model.predict([x_test])
+import numpy as np
+plt.figure(figsize = (13,15))
+for i in range(25):
+  plt.subplot(5,5,i+1)
+  plt.xticks([])
+  plt.yticks([])
+  plt.grid(False)
+  plt.imshow(x_test[i], cmap=plt.cm.binary)
+  plt.title("Prediction: " + str(np.argmax(predictions[i])))
+
+# Lists all images whose prediction was incorrect, along with the prediction label and actual label
+for i, pred in enumerate(predictions):
+  plt.grid(False)
+  plt.imshow(x_test[i], cmap = plt.cm.binary)
+  actual = str(y_test[i])
+  output = str(np.argmax(pred))
+  if actual != output:
+    plt.xlabel("Actual: " + str(y_test[i]))
+    plt.title("Prediction: " + str(np.argmax(predictions[i])))
+    plt.show()
+plt.show()
