@@ -1,0 +1,78 @@
+This code is for a neural network with text classification, based off a tutorial from the Tensorflow website and freeCodeCamp.org
+The dataset is list of movie reviews
+The words are in the form of integer-encoded words (a specific word = a specific integer for the whole dataset)
+Once trained the model should be able to correctly label whether a movie review is positive or negative
+
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+
+# Uses keras to load in dataset
+data = keras.datasets.imdb
+
+# Splits data into testing and training data
+(train_data, train_labels), (test_data, test_labels) = data.load_data(num_words=10000) # Only takes that are among the 1000 most frequent, leaving out words that do not occur often in the dataset
+
+# Gives us dictionary which denotes each word integer pairing (in the form of tuples)
+word_index = data.get_word_index() 
+
+# k = key, v = value - the first four values will represent custom keys
+word_index = {k:(v+3) for k, v in word_index.items()} 
+word_index["<PAD>"] = 0 # To ensure all movie reviews are the same length
+word_index["<START>"] = 1 
+word_index["<UNK>"] = 2
+word_index["<UNUSED>"] = 3
+
+# Swaps values and key, so integer points to words rather than the other way around
+reverse_word_index = dict([(value, key) for (key, value) in word_index.items()])
+
+train_data = keras.preprocessing.sequence.pad_sequences(train_data, value=word_index["<PAD>"], padding="post", maxlen=250)
+test_data = keras.preprocessing.sequence.pad_sequences(test_data, value=word_index["<PAD>"], padding="post", maxlen=250)
+
+# Tries to get index 'i' - if value not found, just gives question mark
+def decode_review(text):
+  return " ".join([reverse_word_index.get(i, "?") for i in text])
+
+# Defining layers of model
+model = keras.Sequential()
+model.add(keras.layers.Embedding(88000, 16)) # Input, sequence of encoded words
+model.add(keras.layers.GlobalAveragePooling1D()) # Hidden
+model.add(keras.layers.Dense(16, activation = "relu")) # Hidden
+model.add(keras.layers.Dense(1, activation = "sigmoid")) # Output, final value ranges between 0 (negative) and 1 (positive)
+
+model.summary()
+
+model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+
+# Splitting training data into two sets
+x_val = train_data[:10000] # Validation data allows us to get a more accurate sense of if the model works, the model can't just memorize the training data this way
+x_train = train_data[10000:]
+
+y_val = train_labels[:10000]
+y_train = train_labels[10000:]
+
+# Trains model
+fitModel = model.fit(x_train, y_train, epochs=40, batch_size=512, validation_data=(x_val, y_val), verbose=1)
+results = model.evaluate(test_data, test_labels)
+
+# Prints loss and accuracy
+print(results)
+
+# For testing, prints a random review (review in index position 7) along with the predicted and actual polarity of the review
+test_review = test_data[7]
+predict = model.predict([test_review])
+print("Review: ")
+print(decode_review(test_review))
+
+if predict[0] == False:
+  print("Prediction: Negative :(")
+else:
+  print("Prediction: Prediction")
+  #print("Prediction: " + str(predict[0]))
+
+if test_labels[0] == False:
+  print("Actual: Negative :(")
+else:
+  print("Actual: Positive :)")
+  #print("Actual: " + str(test_labels[0]))
+
