@@ -58,21 +58,27 @@ results = model.evaluate(test_data, test_labels)
 # Prints loss and accuracy
 print(results)
 
-# For testing, prints a random review (review in index position 7) along with the predicted and actual polarity of the review
-test_review = test_data[7]
-predict = model.predict([test_review])
-print("Review: ")
-print(decode_review(test_review))
+# For output, prints a the first five reviews along with the predicted and actual polarity of the review
+test_review = test_data[:5]
+predict = []
 
-if predict[0] == False:
-  print("Prediction: Negative :(")
-else:
-  print("Prediction: Prediction")
-  #print("Prediction: " + str(predict[0]))
+for i in range(len(test_review)):
+  predict = model.predict([test_review[i]])
 
-if test_labels[0] == False:
-  print("Actual: Negative :(")
-else:
-  print("Actual: Positive :)")
-  #print("Actual: " + str(test_labels[0]))
+  print("Review: ")
+  print(decode_review(test_review[i]))
+
+  if predict[i] == False:
+    print("Prediction: Negative :(")
+  else:
+    print("Prediction: Positive :)")
+    #print("Prediction: " + str(predict[0]))
+
+  if test_labels[i] == False:
+    print("Actual: Negative :(")
+  else:
+    print("Actual: Positive :)")
+    #print("Actual: " + str(test_labels[0]))
+
+  print("\n")
 
